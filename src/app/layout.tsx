@@ -18,17 +18,24 @@ export const metadata: Metadata = {
   description: "Schnell, zuverlässig und professionell! Displaywechsel, Akkuwechsel, Datenrettung und mehr für Ihr Handy in Kiel.",
   keywords: ["Handyreparatur", "Kiel", "Displaywechsel", "Akkuwechsel", "Datenrettung", "Wasserschaden", "HandyPro"],
   authors: [{ name: "HandyPro Kiel" }],
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   openGraph: {
     title: "HandyPro - Ihre Experten für Handyreparaturen",
     description: "Schnell, zuverlässig und professionell! Displaywechsel, Akkuwechsel, Datenrettung und mehr.",
     url: "https://handypro-kiel.de",
     siteName: "HandyPro",
     type: "website",
+    images: [{ url: "/logo.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "HandyPro - Ihre Experten für Handyreparaturen",
     description: "Schnell, zuverlässig und professionell! Displaywechsel, Akkuwechsel, Datenrettung und mehr.",
+    images: [{ url: "/logo.png" }],
   },
 };
 
