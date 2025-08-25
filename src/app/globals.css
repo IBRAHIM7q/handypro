@@ -3,6 +3,44 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Fix für Textfarbe beim Farbmodus-Wechsel */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Verhindert ungewollte Textauswahl */
+.neon-text, h1, h2, h3, h4, h5, h6, button, a {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Override neon-text to use solid colors */
+.neon-text {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+}
+
+/* Mobile spacing improvements */
+@media (max-width: 768px) {
+  #hero {
+    padding-top: 60px !important;
+  }
+  
+  #hero h1 {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+}
+
+/* Verhindert blaue Hervorhebung beim Tippen auf mobile Geräten */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -118,5 +156,206 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom animations and utilities */
+@layer utilities {
+  .glass {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  .card-3d {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  
+  .glow-hover:hover {
+    box-shadow: 0 0 20px rgba(156, 140, 255, 0.6);
+  }
+  
+  .btn-primary {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .btn-secondary {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Creative Welcome Animation Classes */
+  .animate-fade-in {
+    animation: fadeIn 1s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.6s ease-out;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+/* Keyframe Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.8), 0 0 40px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Performance optimizations */
+.phone-body,
+.phone-screen,
+.logo-container {
+  will-change: transform;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .spline-background {
+    /* Let React handle mobile optimization instead of CSS overrides */
+    will-change: transform !important;
+  }
+  
+  /* Ensure canvas works optimally on mobile */
+  canvas {
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    image-rendering: optimizeSpeed !important;
+  }
+  
+  /* Optimize iframe rendering on mobile */
+  iframe[src*="spline"] {
+    image-rendering: optimizeSpeed !important;
+    image-rendering: -webkit-optimize-contrast !important;
+  }
+  
+  /* Improve mobile scrolling performance */
+  #hero {
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+  }
+}
+
+/* WebGL error prevention */
+@supports not (display: -webkit-box) {
+  .spline-background {
+    display: none;
+  }
+}
+
+/* Fallback for browsers without WebGL support */
+.no-webgl .spline-background {
+  display: none;
+}
+
+/* Improve performance for 3D elements */
+canvas, iframe[src*="spline"] {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Enhanced mobile optimizations */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+}
+
+/* Additional mobile 3D optimizations */
+@media (max-width: 768px) {
+  /* Enable hardware acceleration on mobile */
+  .spline-background, .spline-background * {
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Optimize iframe rendering */
+  iframe[src*="spline"] {
+    -webkit-transform: translate3d(0,0,0) scale(0.9);
+    transform: translate3d(0,0,0) scale(0.9);
+    image-rendering: optimizeSpeed;
+    image-rendering: -webkit-optimize-contrast;
   }
 }

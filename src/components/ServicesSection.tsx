@@ -70,60 +70,81 @@ export default function ServicesSection({ darkMode, translations, language }: Se
   return (
     <section 
       ref={sectionRef}
-      className={`py-12 md:py-20 md:py-32 ${darkMode ? "bg-gray-900/30" : "bg-gray-50/50"}`}
+      className={`py-12 md:py-20 ${darkMode ? "bg-gray-900/30" : "bg-gray-50/50"} relative overflow-hidden`}
+      style={{ 
+        background: darkMode ? 
+          'radial-gradient(circle at 10% 20%, rgba(21, 21, 30, 0.98) 0%, rgba(5, 5, 15, 0.98) 90.5%)' : 
+          'radial-gradient(circle at 10% 20%, rgba(245, 247, 252, 0.98) 0%, rgba(235, 237, 242, 0.98) 90.5%)'
+      }}
     >
-      <div className="container mx-auto px-4">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className={`absolute top-20 left-10 w-64 h-64 rounded-full ${darkMode ? 'bg-purple-500/5' : 'bg-blue-500/5'} blur-3xl transform -translate-y-1/2`}></div>
+        <div className={`absolute bottom-20 right-10 w-80 h-80 rounded-full ${darkMode ? 'bg-blue-500/5' : 'bg-purple-500/5'} blur-3xl transform translate-y-1/2`}></div>
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
         {/* Section title with animation */}
-        <div className={`text-center mb-8 md:mb-16 transition-all duration-1000 transform ${
+        <div className={`text-center mb-12 md:mb-20 transition-all duration-1000 transform ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}>
+          <div className="inline-block mb-3 px-4 py-1 rounded-full bg-opacity-10 backdrop-blur-sm border border-opacity-20"
+            style={{ 
+              backgroundColor: darkMode ? 'rgba(100, 100, 255, 0.1)' : 'rgba(100, 100, 255, 0.05)',
+              borderColor: darkMode ? 'rgba(100, 100, 255, 0.2)' : 'rgba(100, 100, 255, 0.1)'
+            }}>
+            <span className={`text-sm font-medium ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+              {t.services.subtitle || "Unsere Dienstleistungen"}
+            </span>
+          </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-slate-500 to-gray-600 bg-clip-text text-transparent">
+            <span className={`bg-gradient-to-r ${darkMode ? 'from-blue-400 to-purple-400' : 'from-blue-600 to-purple-600'} bg-clip-text text-transparent`}
+                 style={{ userSelect: 'none' }}>
               {t.services.title}
             </span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-slate-500 to-gray-600 mx-auto rounded-full"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
         </div>
 
         {/* Services grid with staggered animation */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10">
           {services.map((service, index) => (
             <Card 
               key={index}
-              className={`overflow-hidden transition-all duration-1000 transform hover:scale-[1.02] hover:shadow-lg group ${
+              className={`overflow-hidden transition-all duration-700 transform hover:scale-[1.03] hover:shadow-xl group ${
                 isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-              } ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"}`}
-              style={{ transitionDelay: `${index * 150}ms` }}
+              } ${darkMode ? "bg-gray-900/60 border-gray-800/50" : "bg-white/80 border-gray-200/50"} backdrop-blur-sm`}
+              style={{ 
+                transitionDelay: `${index * 150}ms`,
+                boxShadow: darkMode ? '0 4px 20px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.1)'
+              }}
             >
-              {/* Compact card header */}
-              <div className={`h-24 sm:h-32 bg-gradient-to-br ${service.color} flex items-center justify-center relative overflow-hidden`}>
-                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl transform group-hover:scale-110 transition-transform duration-500">
+              {/* Compact card header with modern gradient */}
+              <div className={`h-24 sm:h-32 flex items-center justify-center relative overflow-hidden`}
+                style={{
+                  background: darkMode ? 
+                    `linear-gradient(135deg, rgba(79, 70, 229, 0.8) 0%, rgba(45, 212, 191, 0.8) 100%)` : 
+                    `linear-gradient(135deg, rgba(79, 70, 229, 0.7) 0%, rgba(45, 212, 191, 0.7) 100%)`,
+                  boxShadow: 'inset 0 0 15px rgba(0, 0, 0, 0.1)'
+                }}>
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-500"></div>
+                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl transform group-hover:scale-110 transition-all duration-500 text-white"
+                     style={{ filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))' }}>
                   {service.icon}
                 </div>
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-                  <div className="absolute top-0 left-0 w-full h-full bg-repeat" 
-                       style={{
-                         backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
-                         backgroundSize: "20px 20px"
-                       }}>
-                  </div>
-                </div>
-                {/* Badge */}
-                <Badge className="absolute top-4 right-4 bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                <Badge className="absolute top-2 right-2 bg-white/90 text-gray-800 hover:bg-white backdrop-blur-sm shadow-lg">
                   {service.badge}
                 </Badge>
               </div>
               
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-base sm:text-lg md:text-xl group-hover:text-slate-400 transition-colors duration-300">
+              <CardHeader className="p-4 pb-0">
+                <CardTitle className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} group-hover:text-blue-500 transition-colors duration-300`}>
                   {service.title}
                 </CardTitle>
               </CardHeader>
               
-              <CardContent className="pt-0">
-                <CardDescription className="text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
+              <CardContent className="p-4 pt-2">
+                <CardDescription className={`${darkMode ? "text-gray-300" : "text-gray-600"} line-clamp-3`}>
                   {service.description}
                 </CardDescription>
 
@@ -146,7 +167,6 @@ export default function ServicesSection({ darkMode, translations, language }: Se
                 {/* Learn more link - Header Style */}
                 <button 
                   onClick={() => {
-                    // Open contact modal for service inquiries
                     const event = new CustomEvent('openContactModal');
                     window.dispatchEvent(event);
                   }}
@@ -155,9 +175,7 @@ export default function ServicesSection({ darkMode, translations, language }: Se
                   }`}
                 >
                   {language === "de" ? "Mehr erfahren" : "معرفة المزيد"}
-                  <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-slate-500 to-gray-600 transition-all duration-300 ${
-                    "scale-x-0 group-hover:scale-x-100"
-                  }`}></span>
+                  <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-slate-500 to-gray-600 transition-all duration-300 scale-x-0 group-hover:scale-x-100`}></span>
                 </button>
               </CardContent>
             </Card>

@@ -1,111 +1,210 @@
+# HandyPro - Mobile Repair Service Website
 
-### 🎯 Core Framework
-- **⚡ Next.js 15** - The React framework for production with App Router
-- **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
-- **🎨 Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
+A modern, responsive website for HandyPro mobile repair services in Kiel, Germany. Built with Next.js 15, TypeScript, and Tailwind CSS.
 
-### 🧩 UI Components & Styling
-- **🧩 shadcn/ui** - High-quality, accessible components built on Radix UI
-- **🎯 Lucide React** - Beautiful & consistent icon library
-- **🌈 Framer Motion** - Production-ready motion library for React
-- **🎨 Next Themes** - Perfect dark mode in 2 lines of code
+## ✨ Features
 
-### 📋 Forms & Validation
-- **🎣 React Hook Form** - Performant forms with easy validation
-- **✅ Zod** - TypeScript-first schema validation
-
-### 🔄 State Management & Data Fetching
-- **🐻 Zustand** - Simple, scalable state management
-- **🔄 TanStack Query** - Powerful data synchronization for React
-- **🌐 Axios** - Promise-based HTTP client
-
-### 🗄️ Database & Backend
-- **🗄️ Prisma** - Next-generation Node.js and TypeScript ORM
-- **🔐 NextAuth.js** - Complete open-source authentication solution
-
-### 🎨 Advanced UI Features
-- **📊 TanStack Table** - Headless UI for building tables and datagrids
-- **🖱️ DND Kit** - Modern drag and drop toolkit for React
-- **📊 Recharts** - Redefined chart library built with React and D3
-- **🖼️ Sharp** - High performance image processing
-
-### 🌍 Internationalization & Utilities
-- **🌍 Next Intl** - Internationalization library for Next.js
-- **📅 Date-fns** - Modern JavaScript date utility library
-- **🪝 ReactUse** - Collection of essential React hooks for modern development
-
-## 🎯 Why This Scaffold?
-
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
+- **Modern Design**: Clean, professional layout with dark/light mode toggle
+- **Multilingual Support**: German and Arabic language options
+- **Responsive**: Mobile-first design that works on all devices
+- **3D Elements**: Interactive 3D animations using Spline
+- **Real-time Communication**: Socket.IO integration for live features
+- **Type Safety**: Full TypeScript implementation
+- **Component Library**: shadcn/ui components for consistent design
+- **SEO Optimized**: Meta tags, Open Graph, and Twitter cards
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- PostgreSQL (optional, for database features)
+
+### Installation
+
+1. **Navigate to project directory**
 ```bash
-# Install dependencies
+cd c:\Users\alsaa\Downloads\HANDYPRO
+```
+
+2. **Install dependencies**
+```bash
 npm install
+```
 
-# Start development server
+3. **Environment Setup**
+```bash
+# Copy the example environment file
+copy .env.example .env
+
+# Edit .env with your configuration
+# DATABASE_URL, NEXTAUTH_SECRET, etc.
+```
+
+4. **Database Setup (Optional)**
+```bash
+# Generate Prisma client
+npm run db:generate
+
+# Push schema to database
+npm run db:push
+```
+
+5. **Start Development Server**
+```bash
 npm run dev
+```
 
-# Build for production
+The application will be available at `http://localhost:3000`
+
+## 🛠️ Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push schema to database
+- `npm run db:migrate` - Run database migrations
+
+### Project Structure
+
+```
+src/
+├── app/                 # Next.js App Router
+│   ├── api/            # API routes
+│   ├── globals.css     # Global styles
+│   ├── layout.tsx      # Root layout
+│   └── page.tsx        # Home page
+├── components/         # React components
+│   ├── ui/            # shadcn/ui components
+│   ├── Header.tsx     # Navigation header
+│   ├── HeroSection.tsx # Landing section
+│   └── ...            # Other components
+├── hooks/             # Custom React hooks
+├── lib/               # Utilities and configs
+│   ├── db.ts          # Database client
+│   ├── socket.ts      # Socket.IO setup
+│   └── utils.ts       # Helper functions
+## 🔧 Technologies Used
+
+### Frontend
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript 5.9.2
+- **Styling**: Tailwind CSS 4 + shadcn/ui
+- **Animations**: Framer Motion + custom CSS
+- **3D Graphics**: Spline
+- **Icons**: Lucide React + Emoji fallbacks
+
+### Backend
+- **Runtime**: Node.js with tsx
+- **Database**: Prisma ORM (PostgreSQL/SQLite)
+- **Authentication**: NextAuth.js
+- **Real-time**: Socket.IO
+- **Image Processing**: Sharp
+
+### Development Tools
+- **Linting**: ESLint + Next.js config
+- **Package Manager**: npm
+- **Development Server**: Nodemon + tsx
+
+## 🌐 Deployment
+
+### Production Build
+
+```bash
+# Build the application
 npm run build
 
 # Start production server
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
+### Environment Variables
 
-## 📁 Project Structure
+Ensure these are set in production:
 
-```
-src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+```env
+DATABASE_URL=your_database_url
+NEXTAUTH_URL=your_domain
+NEXTAUTH_SECRET=your_secret_key
+NODE_ENV=production
 ```
 
-## 🎨 Available Features & Components
+## 📱 Features
 
-This scaffold includes a comprehensive set of modern web development tools:
+### Service Sections
+- **Display Repair**: Professional screen replacement
+- **Battery Replacement**: High-capacity battery installation
+- **Data Recovery**: Safe data retrieval from damaged devices
+- **Water Damage**: Emergency repair services
+- **Accessories**: Phone cases, screen protectors, cables
 
-### 🧩 UI Components (shadcn/ui)
-- **Layout**: Card, Separator, Aspect Ratio, Resizable Panels
-- **Forms**: Input, Textarea, Select, Checkbox, Radio Group, Switch
-- **Feedback**: Alert, Toast (Sonner), Progress, Skeleton
-- **Navigation**: Breadcrumb, Menubar, Navigation Menu, Pagination
-- **Overlay**: Dialog, Sheet, Popover, Tooltip, Hover Card
-- **Data Display**: Badge, Avatar, Calendar
+### Interactive Elements
+- **Contact Modal**: Multiple contact methods (WhatsApp, Email, Social)
+- **Language Toggle**: German/Arabic support with RTL layout
+- **Theme Switcher**: Dark/Light mode with system preference detection
+- **Chat Button**: Floating contact widget
+- **Smooth Scrolling**: Animated section navigation
 
-### 📊 Advanced Data Features
-- **Tables**: Powerful data tables with sorting, filtering, pagination (TanStack Table)
-- **Charts**: Beautiful visualizations with Recharts
-- **Forms**: Type-safe forms with React Hook Form + Zod validation
+## 🔧 Troubleshooting
 
-### 🎨 Interactive Features
-- **Animations**: Smooth micro-interactions with Framer Motion
-- **Drag & Drop**: Modern drag-and-drop functionality with DND Kit
-- **Theme Switching**: Built-in dark/light mode support
+### Common Issues
 
-### 🔐 Backend Integration
-- **Authentication**: Ready-to-use auth flows with NextAuth.js
-- **Database**: Type-safe database operations with Prisma
-- **API Client**: HTTP requests with Axios + TanStack Query
-- **State Management**: Simple and scalable with Zustand
+1. **Port 3000 already in use**
+```bash
+# Kill the process using port 3000
+netstat -ano | findstr :3000
+taskkill /PID <PID_NUMBER> /F
+```
 
-### 🌍 Production Features
-- **Internationalization**: Multi-language support with Next Intl
-- **Image Optimization**: Automatic image processing with Sharp
-- **Type Safety**: End-to-end TypeScript with Zod validation
-- **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
+2. **TypeScript errors**
+```bash
+# Regenerate TypeScript definitions
+npm run db:generate
+npm run build
+```
+
+3. **Missing environment variables**
+```bash
+# Copy and configure environment file
+copy .env.example .env
+# Edit .env with your values
+```
+
+4. **Database connection issues**
+```bash
+# Reset database (development only)
+npm run db:reset
+```
+
+### Performance Optimization
+
+- **Images**: Automatically optimized with Next.js Image component
+- **Code Splitting**: Automatic with Next.js App Router
+- **Bundle Analysis**: Use `npm run build` to check bundle sizes
+- **Mobile Performance**: 3D elements disabled on mobile devices
+
+## 📞 Contact Information
+
+- **Business**: HandyPro Kiel
+- **Address**: Kronshagener Weg 12, 24116 Kiel
+- **Phone**: 01577 1149895
+- **Email**: handypro.kiel@gmail.com
+- **Instagram**: [@handy_pro_kiel](https://www.instagram.com/handy_pro_kiel)
+- **Facebook**: [HandyPro Kiel](https://www.facebook.com/share/16iu2qkmz1/)
+
+## 📄 License
+
+This project is proprietary software for HandyPro Kiel.
+
+## 🤝 Support
+
+For technical support or questions about the website, please contact the development team.
+
+---
+
+**Built with ❤️ for HandyPro Kiel**

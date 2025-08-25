@@ -1,15 +1,12 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,16 +14,67 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  repairs Repair[]
+
+  @@map("users")
 }
 
-model Post {
+model Device {
+  id    String @id @default(cuid())
+  brand String
+  model String
+  type  String // "phone", "tablet", etc.
+
+  // Relations
+  repairs Repair[]
+
+  @@map("devices")
+}
+
+model Repair {
+  id          String      @id @default(cuid())
+  description String
+  problem     String
+  status      RepairStatus @default(PENDING)
+  cost        Float?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  completedAt DateTime?
+
+  // Foreign Keys
+  userId   String
+  deviceId String
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device Device @relation(fields: [deviceId], references: [id])
+
+  @@map("repairs")
+}
+
+model Contact {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  name      String
+  email     String
+  phone     String?
+  message   String
+  subject   String?
+  responded Boolean  @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+enum RepairStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  ON_HOLD
 }

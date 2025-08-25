@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+// These imports are not needed since we're passing props directly
 import AnimatedLogo from "./AnimatedLogo";
 
 interface HeaderProps {
@@ -44,13 +45,13 @@ export default function Header({
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
       scrolled 
-        ? `${darkMode ? "bg-black/90 backdrop-blur-lg border-b border-gray-900/50" : "bg-white/90 backdrop-blur-lg border-b border-gray-200/50"} py-2 shadow-lg` 
-        : "py-4"
+        ? `${darkMode ? "bg-black/90 backdrop-blur-lg" : "bg-white/90 backdrop-blur-lg"} py-2 shadow-lg rounded-full mx-4 mt-2` 
+        : "py-4 rounded-full mx-4 mt-2 bg-gradient-to-r from-gray-900/70 to-black/70 backdrop-blur-lg"
     }`}>
       <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-slate-700 to-gray-800 flex items-center justify-center shadow-lg">
+        {/* Logo - moved to the left */}
+        <div className="flex items-center space-x-3 ml-2">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-gray-800 flex items-center justify-center shadow-lg">
             <AnimatedLogo />
           </div>
           <div>
@@ -85,28 +86,42 @@ export default function Header({
         <div className="flex items-center space-x-4">
           {/* Language Switcher */}
           <Select value={language} onValueChange={(value: "de" | "ar") => setLanguage(value)}>
-            <SelectTrigger className={`w-16 h-9 ${scrolled ? "border-gray-300" : "border-transparent"}`}>
+            <SelectTrigger className={`w-24 h-9 ${scrolled ? "border-gray-300" : "border-transparent"}`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="de">DE</SelectItem>
-              <SelectItem value="ar">AR</SelectItem>
+              <SelectItem value="de">Deutsch</SelectItem>
+              <SelectItem value="ar">Arabisch</SelectItem>
             </SelectContent>
           </Select>
 
-          {/* Dark Mode Toggle */}
+          {/* Dark Mode Toggle - More visible */}
           <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setDarkMode(!darkMode)}
-            className={`h-9 w-9 rounded-full transition-all duration-300 ${
-              scrolled ? "hover:bg-gray-200 dark:hover:bg-gray-700" : ""
+            variant={darkMode ? "outline" : "default"}
+            onClick={(e) => {
+              e.preventDefault();
+              setDarkMode(!darkMode);
+            }}
+            style={{ 
+              WebkitTapHighlightColor: 'transparent', 
+              touchAction: 'manipulation',
+              userSelect: 'none',
+              WebkitUserSelect: 'none'
+            }}
+            className={`h-9 px-3 rounded-full transition-all duration-300 flex items-center gap-2 ${
+              darkMode ? "bg-gray-800 text-white border-gray-600" : "bg-yellow-100 text-gray-800"
             }`}
           >
             {darkMode ? (
-              <span className="text-xl transition-transform duration-300 hover:rotate-180">☀️</span>
+              <>
+                <span className="text-xl transition-transform duration-300" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>☀️</span>
+                <span className="text-xs" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>Hell</span>
+              </>
             ) : (
-              <span className="text-xl transition-transform duration-300 hover:rotate-180">🌙</span>
+              <>
+                <span className="text-xl transition-transform duration-300" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>🌙</span>
+                <span className="text-xs" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>Dunkel</span>
+              </>
             )}
           </Button>
 

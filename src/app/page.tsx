@@ -20,7 +20,9 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [showCookieBanner, setShowCookieBanner] = useState(true);
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
+  const [animationStep, setAnimationStep] = useState(0);
 
   // Translations for German and Arabic based on HandyPro content
   const translations = {
@@ -131,7 +133,7 @@ export default function Home() {
         modalTitle: "Hallo",
         modalSubtitle: "Kontaktieren Sie uns über einen dieser Kanäle:",
         whatsapp: "WhatsApp",
-        email: "E-Mail",
+        emailContact: "E-Mail",
         instagram: "Instagram",
         facebook: "Facebook"
       },
@@ -252,7 +254,7 @@ export default function Home() {
         modalTitle: "مرحباً",
         modalSubtitle: "تواصل معنا عبر إحدى هذه القنوات:",
         whatsapp: "واتساب",
-        email: "البريد الإلكتروني",
+        emailContact: "البريد الإلكتروني",
         instagram: "انستغرام",
         facebook: "فيسبوك"
       },
@@ -281,6 +283,28 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
   }, [language]);
+
+  // Creative Welcome Animation Sequence
+  useEffect(() => {
+    if (!showWelcomeAnimation) return;
+
+    const animationSequence = [
+      { delay: 1000, step: 1 }, // HandyPro logo appears
+      { delay: 2000, step: 2 }, // Service icons float in
+      { delay: 3000, step: 3 }, // Stats counter animation
+      { delay: 4500, step: 4 }, // Final welcome message
+      { delay: 6000, step: 5 }  // Animation complete
+    ];
+
+    animationSequence.forEach(({ delay, step }) => {
+      setTimeout(() => {
+        setAnimationStep(step);
+        if (step === 5) {
+          setTimeout(() => setShowWelcomeAnimation(false), 1000);
+        }
+      }, delay);
+    });
+  }, [showWelcomeAnimation]);
 
   useEffect(() => {
     // Listen for custom event to open contact modal
@@ -327,7 +351,7 @@ export default function Home() {
       />
 
       <main>
-        {/* Hero Section */}
+        {/* Hero Section mit ID für Navigation */}
         <HeroSection
           darkMode={darkMode}
           setIsContactModalOpen={setIsContactModalOpen}
@@ -336,56 +360,145 @@ export default function Home() {
         />
 
         {/* Services Section */}
-        <ServicesSection
-          darkMode={darkMode}
-          translations={translations}
-          language={language}
-        />
+        <div id="services">
+          <ServicesSection
+            darkMode={darkMode}
+            translations={translations}
+            language={language}
+          />
+        </div>
 
         {/* Accessories Section */}
-        <section id="accessories" className="py-12 md:py-20">
-          <div className="container mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl md:text-4xl font-bold text-center mb-8 md:mb-16">
-              {t.accessories.title}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-              <Card className={`overflow-hidden transition-all hover:shadow-lg ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"}`}>
-                <div className="h-24 sm:h-32 md:h-48 bg-gradient-to-r from-slate-600 to-gray-700 flex items-center justify-center">
-                  <div className="text-white text-3xl sm:text-4xl md:text-5xl">📦</div>
+        <section id="accessories" className="py-12 md:py-20 relative overflow-hidden"
+          style={{ 
+            background: darkMode ? 
+              'linear-gradient(135deg, rgba(15, 15, 25, 0.95) 0%, rgba(25, 25, 35, 0.95) 100%)' : 
+              'linear-gradient(135deg, rgba(245, 247, 250, 0.95) 0%, rgba(235, 240, 255, 0.95) 100%)'
+          }}>
+          {/* Decorative elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full ${darkMode ? 'bg-blue-500/5' : 'bg-blue-500/10'} blur-3xl`}></div>
+            <div className={`absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full ${darkMode ? 'bg-purple-500/5' : 'bg-purple-500/10'} blur-3xl`}></div>
+          </div>
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center mb-12 md:mb-16">
+              <div className="inline-block mb-3 px-4 py-1 rounded-full bg-opacity-10 backdrop-blur-sm border border-opacity-20"
+                style={{ 
+                  backgroundColor: darkMode ? 'rgba(100, 100, 255, 0.1)' : 'rgba(100, 100, 255, 0.05)',
+                  borderColor: darkMode ? 'rgba(100, 100, 255, 0.2)' : 'rgba(100, 100, 255, 0.1)'
+                }}>
+                <span className={`text-sm font-medium ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+                  {language === "de" ? "Premium Zubehör" : "ملحقات متميزة"}
+                </span>
+              </div>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
+                <span className={`bg-gradient-to-r ${darkMode ? 'from-blue-400 to-purple-400' : 'from-blue-600 to-purple-600'} bg-clip-text text-transparent`}>
+                  {t.accessories.title}
+                </span>
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
+              <Card className={`group overflow-hidden transition-all duration-500 hover:shadow-xl ${darkMode ? "bg-gray-900/80 border-gray-800/50" : "bg-white/90 border-gray-200/50"} backdrop-blur-sm hover:translate-y-[-5px]`}
+                style={{ 
+                  boxShadow: darkMode ? '0 4px 20px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.1)'
+                }}>
+                <div className="h-32 md:h-48 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 opacity-90"></div>
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-500"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-4xl md:text-5xl transform group-hover:scale-110 transition-all duration-500"
+                         style={{ filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))' }}>
+                      📱
+                    </div>
+                  </div>
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base sm:text-lg md:text-xl">{t.accessories.cases.title}</CardTitle>
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} group-hover:text-blue-500 transition-colors duration-300`}>
+                    {t.accessories.cases.title}
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="text-xs sm:text-sm md:text-base">
+                <CardContent className="p-4 pt-2">
+                  <CardDescription className={`${darkMode ? "text-gray-300" : "text-gray-600"} line-clamp-3`}>
                     {t.accessories.cases.description}
                   </CardDescription>
+                  <div className="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <span className={`text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'} flex items-center group-hover:translate-x-1 transition-transform duration-300`}>
+                      {language === "de" ? "Mehr anzeigen" : "عرض المزيد"}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
-              <Card className={`overflow-hidden transition-all hover:shadow-lg ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"}`}>
-                <div className="h-24 sm:h-32 md:h-48 bg-gradient-to-r from-slate-600 to-gray-700 flex items-center justify-center">
-                  <div className="text-white text-3xl sm:text-4xl md:text-5xl">🛡️</div>
+              
+              <Card className={`group overflow-hidden transition-all duration-500 hover:shadow-xl ${darkMode ? "bg-gray-900/80 border-gray-800/50" : "bg-white/90 border-gray-200/50"} backdrop-blur-sm hover:translate-y-[-5px]`}
+                style={{ 
+                  boxShadow: darkMode ? '0 4px 20px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.1)'
+                }}>
+                <div className="h-32 md:h-48 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 opacity-90"></div>
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-500"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-4xl md:text-5xl transform group-hover:scale-110 transition-all duration-500"
+                         style={{ filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))' }}>
+                      🛡️
+                    </div>
+                  </div>
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base sm:text-lg md:text-xl">{t.accessories.glass.title}</CardTitle>
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} group-hover:text-purple-500 transition-colors duration-300`}>
+                    {t.accessories.glass.title}
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="text-xs sm:text-sm md:text-base">
+                <CardContent className="p-4 pt-2">
+                  <CardDescription className={`${darkMode ? "text-gray-300" : "text-gray-600"} line-clamp-3`}>
                     {t.accessories.glass.description}
                   </CardDescription>
+                  <div className="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <span className={`text-sm font-medium ${darkMode ? 'text-purple-400' : 'text-purple-600'} flex items-center group-hover:translate-x-1 transition-transform duration-300`}>
+                      {language === "de" ? "Mehr anzeigen" : "عرض المزيد"}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
-              <Card className={`overflow-hidden transition-all hover:shadow-lg ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"}`}>
-                <div className="h-24 sm:h-32 md:h-48 bg-gradient-to-r from-slate-600 to-gray-700 flex items-center justify-center">
-                  <div className="text-white text-3xl sm:text-4xl md:text-5xl">🔌</div>
+              
+              <Card className={`group overflow-hidden transition-all duration-500 hover:shadow-xl ${darkMode ? "bg-gray-900/80 border-gray-800/50" : "bg-white/90 border-gray-200/50"} backdrop-blur-sm hover:translate-y-[-5px]`}
+                style={{ 
+                  boxShadow: darkMode ? '0 4px 20px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.1)'
+                }}>
+                <div className="h-32 md:h-48 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-teal-600 opacity-90"></div>
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-all duration-500"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white text-4xl md:text-5xl transform group-hover:scale-110 transition-all duration-500"
+                         style={{ filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))' }}>
+                      🔌
+                    </div>
+                  </div>
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base sm:text-lg md:text-xl">{t.accessories.cables.title}</CardTitle>
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} group-hover:text-green-500 transition-colors duration-300`}>
+                    {t.accessories.cables.title}
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="text-xs sm:text-sm md:text-base">
+                <CardContent className="p-4 pt-2">
+                  <CardDescription className={`${darkMode ? "text-gray-300" : "text-gray-600"} line-clamp-3`}>
                     {t.accessories.cables.description}
                   </CardDescription>
+                  <div className="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <span className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'} flex items-center group-hover:translate-x-1 transition-transform duration-300`}>
+                      {language === "de" ? "Mehr anzeigen" : "عرض المزيد"}
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
               <Card className={`overflow-hidden transition-all hover:shadow-lg ${darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"}`}>
@@ -648,16 +761,27 @@ export default function Home() {
                         {t.contact.showRoute}
                       </a>
                       <div className="mt-4 bg-white p-4 rounded-xl shadow-inner">
-                        <iframe
-                          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2244.773543298633!2d10.10685731592969!3d54.32308998018109!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b243f1e6e6e6e7%3A0x123456789abcdef!2sKronshagener%20Weg%2012%2C%2024116%20Kiel!5e0!3m2!1sde!2sde!4v1718030000000!5m2!1sde!2sde"
-                          width="100%" 
-                          height="200" 
-                          style={{border:0}} 
-                          allowFullScreen 
-                          loading="lazy" 
-                          referrerPolicy="no-referrer-when-downgrade"
-                          className="rounded-lg shadow-md w-full"
-                        ></iframe>
+                        {/* Fallback map container - preventing Google Maps API errors */}
+                        <div className="relative w-full h-48 bg-gray-200 rounded-lg overflow-hidden">
+                          <div className="absolute inset-0 flex items-center justify-center flex-col text-gray-600">
+                            <div className="text-4xl mb-2">📍</div>
+                            <div className="text-center">
+                              <p className="font-semibold">{t.contact.addressValue}</p>
+                              <p className="text-sm mt-1">Kiel, Deutschland</p>
+                            </div>
+                          </div>
+                          {/* Optional: Add click to open in Google Maps */}
+                          <a 
+                            href="https://www.google.com/maps/dir/?api=1&destination=Kronshagener+Weg+12,+24116+Kiel"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute inset-0 flex items-end justify-center pb-4 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"
+                          >
+                            <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                              In Google Maps öffnen
+                            </span>
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -705,38 +829,89 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Cookie Settings */}
-      {showCookieBanner && (
-        <div className={`fixed bottom-4 left-4 right-4 z-40 p-4 rounded-lg shadow-lg max-w-md mx-auto ${darkMode ? "bg-gray-900 border border-gray-800" : "bg-white border border-gray-200"}`}>
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h3 className="font-bold mb-1">{t.cookies.title}</h3>
-              <p className="text-sm opacity-80 mb-3">{t.cookies.description}</p>
-              <div className="flex space-x-2">
-                <Button 
-                  size="sm" 
-                  className="text-xs"
-                  onClick={() => setShowCookieBanner(false)}
-                >
-                  {t.cookies.acceptAll}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="text-xs"
-                  onClick={() => setShowCookieBanner(false)}
-                >
-                  {t.cookies.acceptNecessary}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  className="text-xs"
-                  onClick={() => alert("Cookie-Einstellungen werden in Kürze verfügbar!")}
-                >
-                  {t.cookies.settings}
-                </Button>
+      {/* Creative Welcome Animation */}
+      {showWelcomeAnimation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-md mx-4">
+            {/* Step 1: HandyPro Logo Reveal */}
+            {animationStep >= 1 && (
+              <div className={`text-center mb-8 transition-all duration-1000 ${
+                animationStep >= 1 ? "opacity-100 scale-100" : "opacity-0 scale-50"
+              }`}>
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center animate-pulse">
+                  <span className="text-4xl">📱</span>
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-2">HandyPro</h1>
+                <p className="text-blue-200">Ihre Experten für Handyreparaturen</p>
               </div>
+            )}
+
+            {/* Step 2: Service Icons Float In */}
+            {animationStep >= 2 && (
+              <div className="grid grid-cols-4 gap-4 mb-8">
+                {[
+                  { icon: "🔧", label: "Reparatur", delay: "0ms" },
+                  { icon: "🔋", label: "Akku", delay: "200ms" },
+                  { icon: "📱", label: "Display", delay: "400ms" },
+                  { icon: "💧", label: "Wasser", delay: "600ms" }
+                ].map((service, index) => (
+                  <div
+                    key={index}
+                    className="text-center animate-bounce"
+                    style={{ animationDelay: service.delay }}
+                  >
+                    <div className="w-12 h-12 mx-auto mb-2 rounded-lg bg-white/10 flex items-center justify-center">
+                      <span className="text-2xl">{service.icon}</span>
+                    </div>
+                    <p className="text-xs text-white/80">{service.label}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Step 3: Stats Counter Animation */}
+            {animationStep >= 3 && (
+              <div className="grid grid-cols-3 gap-4 mb-8 text-center">
+                {[
+                  { value: "1K+", label: "Kunden", color: "text-green-400" },
+                  { value: "1K+", label: "Reparaturen", color: "text-blue-400" },
+                  { value: "100%", label: "Qualität", color: "text-purple-400" }
+                ].map((stat, index) => (
+                  <div key={index} className="animate-pulse">
+                    <div className={`text-xl font-bold ${stat.color}`}>{stat.value}</div>
+                    <div className="text-xs text-white/70">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Step 4: Welcome Message */}
+            {animationStep >= 4 && (
+              <div className="text-center animate-fade-in">
+                <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {language === "de" ? "Willkommen!" : "مرحباً!"}
+                  </h3>
+                  <p className="text-sm text-white/80">
+                    {language === "de" 
+                      ? "Entdecken Sie unsere professionellen Reparaturservices"
+                      : "اكتشف خدمات الإصلاح الاحترافية لدينا"
+                    }
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Progress Indicator */}
+            <div className="mt-8 flex justify-center space-x-2">
+              {[1, 2, 3, 4].map((step) => (
+                <div
+                  key={step}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    animationStep >= step ? "bg-blue-400" : "bg-white/30"
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
