@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
     // 构建时忽略ESLint错误
     ignoreDuringBuilds: true,
   },
+  // Enable static export for GitHub Pages
+  output: 'export',
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

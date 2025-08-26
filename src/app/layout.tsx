@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://handypro-kiel.de'),
   title: "HandyPro - Ihre Experten für Handyreparaturen in Kiel!",
   description: "Schnell, zuverlässig und professionell! Displaywechsel, Akkuwechsel, Datenrettung und mehr für Ihr Handy in Kiel.",
   keywords: ["Handyreparatur", "Kiel", "Displaywechsel", "Akkuwechsel", "Datenrettung", "Wasserschaden", "HandyPro"],

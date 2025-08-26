@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Spline from '@splinetool/react-spline';
@@ -29,34 +29,63 @@ interface HeroSectionProps {
   language: "de" | "ar";
 }
 
-export default function HeroSection({ darkMode, setIsContactModalOpen, translations, language }: HeroSectionProps) {
+const HeroSection = memo(function HeroSection({ darkMode, setIsContactModalOpen, translations, language }: HeroSectionProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [phoneRotation, setPhoneRotation] = useState({ x: 0, y: 0 });
   const [hasWebGL, setHasWebGL] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [viewportDimensions, setViewportDimensions] = useState({ width: 0, height: 0 });
-  const phoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Comprehensive mobile detection and viewport handling
+    // Comprehensive mobile detection and viewport handling with performance optimization
     const detectMobileAndViewport = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2); // Limit to 2 for performance
       
       setViewportDimensions({ width, height });
       
-      // Simplified mobile detection to prevent hydration issues
-      const isMobileDevice = width <= 768;
+      // Enhanced mobile detection with better small screen handling
+      const isMobileDevice = width <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
+      const isVerySmallScreen = width < 700 || height < 900;
       setIsMobile(isMobileDevice);
       
-      console.log('Device detection:', { isMobileDevice, width, height });
+      // Store screen size info for 3D background optimization
+      document.documentElement.style.setProperty('--is-very-small-screen', isVerySmallScreen ? '1' : '0');
+      
+      // Store pixel ratio for 3D rendering optimization
+      document.documentElement.style.setProperty('--device-pixel-ratio', pixelRatio.toString());
+      
+      // Store viewport dimensions for 3D background scaling
+      document.documentElement.style.setProperty('--viewport-width', width.toString());
+      document.documentElement.style.setProperty('--viewport-height', height.toString());
+      
+      console.log('Device detection:', { 
+        isMobileDevice, 
+        width, 
+        height, 
+        pixelRatio: window.devicePixelRatio,
+        limitedRatio: pixelRatio,
+        touchSupport: 'ontouchstart' in window,
+        userAgent: navigator.userAgent
+      });
     };
     
     // Initial detection and mount
     detectMobileAndViewport();
     setIsMounted(true);
     
-    window.addEventListener('resize', detectMobileAndViewport);
+    // Throttled resize and orientation change handlers
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(detectMobileAndViewport, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      // Add delay for orientation change to complete
+      setTimeout(detectMobileAndViewport, 200);
+    });
     
     // Enhanced WebGL detection with mobile compatibility
     try {
@@ -68,33 +97,25 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
       if (!gl) {
         setHasWebGL(false);
         document.documentElement.classList.add('no-webgl');
+        console.warn('WebGL not supported, using fallback');
+      } else {
+        setHasWebGL(true);
+        console.log('WebGL supported:', {
+          renderer: (gl as WebGLRenderingContext).getParameter((gl as WebGLRenderingContext).RENDERER),
+          vendor: (gl as WebGLRenderingContext).getParameter((gl as WebGLRenderingContext).VENDOR)
+        });
       }
     } catch (e) {
-      console.log('WebGL detection failed, but allowing rendering:', e);
+      console.warn('WebGL detection failed, using fallback:', e);
+      setHasWebGL(false);
     }
     
-    // Initialize phone rotation animation with smoother transitions
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!phoneRef.current) return;
-      
-      const rect = phoneRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      // More subtle rotation effect (reduced multiplier from 10 to 5)
-      const rotateY = ((e.clientX - centerX) / (window.innerWidth / 2)) * 5;
-      const rotateX = ((e.clientY - centerY) / (window.innerHeight / 2)) * -5;
-      
-      setPhoneRotation({ x: rotateX, y: rotateY });
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('resize', detectMobileAndViewport);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', detectMobileAndViewport);
+      clearTimeout(resizeTimeout);
     };
-  }, []);
+  }, [isMobile]);
 
   const t = translations[language];
   const [isVisible, setIsVisible] = useState(false);
@@ -148,16 +169,29 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
       style={{ 
         backgroundColor: darkMode ? themeColors.bgPrimary : '#F1F5F9', // Lighter background for light mode
         color: themeColors.textPrimary,
+        border: 'none',
+        borderTop: 'none',
+        boxShadow: 'none',
+        margin: '0',
+        paddingTop: '0'
       }}
-      className="min-h-screen relative overflow-hidden pt-16 md:pt-20"
+      className="min-h-screen relative overflow-hidden"
     >
-      {/* Spline 3D Background - with responsive mobile optimization */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Adaptive gradient background based on theme - More subtle for light mode */}
+
+      {/* Spline 3D Background - with aggressive mobile optimization and full coverage */}
+      <div className="absolute inset-0 overflow-hidden" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 0,
+      }}>
+        {/* Adaptive gradient background based on theme - Removed white filters for light mode */}
         <div className={`absolute inset-0 ${
           darkMode 
             ? 'bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20'
-            : 'bg-gradient-to-br from-blue-50/30 via-purple-50/30 to-indigo-50/30'
+            : 'bg-transparent'
         }`}></div>
         
         {/* Show loading state before hydration completes */}
@@ -165,43 +199,84 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
           <div className={`absolute inset-0 animate-pulse ${
             darkMode 
               ? 'bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-indigo-900/30'
-              : 'bg-gradient-to-br from-blue-100/40 via-purple-100/40 to-indigo-100/40'
+              : 'bg-transparent'
           }`}></div>
         )}
         
         {/* Responsive 3D Background with mobile-optimized settings - Works in both modes */}
         {isMounted && (
           <>
-            {/* Primary Spline iframe with responsive sizing - Enhanced for light mode */}
+            {/* Primary Spline iframe with watermark hiding and proper background positioning */}
             <iframe 
               src='https://my.spline.design/orb-sSzmsjAvuweqMuCLtYgiULil/' 
               frameBorder='0' 
-              width={isMobile ? '100%' : '120%'}
-              height={isMobile ? '100%' : '120%'}
+              width={isMobile ? (viewportDimensions.width < 700 ? '200%' : '250%') : '150%'}
+              height={isMobile ? (viewportDimensions.width < 700 ? '200%' : '250%') : '150%'}
               style={{
                 position: 'absolute',
-                top: isMobile ? '0%' : '-10%',
-                left: isMobile ? '0%' : '-10%',
+                top: isMobile ? (viewportDimensions.width < 700 ? '-50%' : '-75%') : '-25%',
+                left: isMobile ? (viewportDimensions.width < 700 ? '-50%' : '-75%') : '-25%',
                 zIndex: 0,
                 pointerEvents: 'none',
-                transform: isMobile ? 'translate3d(0,0,0) scale(0.85)' : 'translate3d(0,0,0)',
+                transform: isMobile 
+                  ? `translate3d(0,0,0) scale(${viewportDimensions.width < 700 ? '1.5' : viewportDimensions.width <= 430 ? '2.2' : '2.0'})` 
+                  : 'translate3d(0,0,0) scale(1.5)',
+                transformOrigin: 'center center',
                 willChange: 'transform',
-                // Make 3D background visible in light mode too
-                opacity: darkMode ? 1 : (isMobile ? 0.4 : 0.6),
-                mixBlendMode: darkMode ? 'normal' : 'multiply', // Blend mode for light mode
+                opacity: isMobile ? 1.0 : 1,
+                mixBlendMode: 'normal',
+                filter: 'none',
+                border: 'none',
+                outline: 'none',
+                boxShadow: 'none',
+                overflow: 'hidden',
+                borderRadius: '0'
               }}
               title="3D Background"
+              onLoad={() => {
+                // Hide watermarks after iframe loads
+                setTimeout(() => {
+                  const hideWatermarks = () => {
+                    // Hide any elements with spline-related content
+                    document.querySelectorAll('[class*="spline" i], [id*="spline" i], [data-spline], a[href*="spline"]').forEach(el => {
+                      (el as HTMLElement).style.display = 'none';
+                      (el as HTMLElement).style.visibility = 'hidden';
+                      (el as HTMLElement).style.opacity = '0';
+                    });
+                    
+                    // Hide positioned overlays that might be watermarks
+                    document.querySelectorAll('div[style*="position: absolute"], div[style*="position: fixed"]').forEach(el => {
+                      const element = el as HTMLElement;
+                      const text = element.textContent?.toLowerCase();
+                      if (text?.includes('spline') || text?.includes('made with')) {
+                        element.style.display = 'none';
+                        element.style.visibility = 'hidden';
+                      }
+                    });
+                  };
+                  
+                  hideWatermarks();
+                  // Run again after a delay to catch dynamically loaded content
+                  setTimeout(hideWatermarks, 1000);
+                  setTimeout(hideWatermarks, 3000);
+                }, 100);
+              }}
               onError={() => console.log('Spline iframe failed to load')}
               loading="lazy"
+              allow="accelerometer; gyroscope"
+              sandbox="allow-scripts allow-same-origin"
+              scrolling="no"
+              seamless
+              referrerPolicy="no-referrer"
             ></iframe>
             
-            {/* Secondary Spline component with mobile responsiveness - Enhanced for light mode */}
+            {/* Secondary Spline component with aggressive background scaling and positioning */}
             <div className="spline-background" style={{
               position: 'absolute',
-              top: isMobile ? '-5%' : '-15%',
-              left: isMobile ? '-5%' : '-15%',
-              width: isMobile ? '110%' : '130%',
-              height: isMobile ? '110%' : '130%',
+              top: isMobile ? (viewportDimensions.width < 700 ? '-40%' : '-60%') : '-15%',
+              left: isMobile ? (viewportDimensions.width < 700 ? '-40%' : '-60%') : '-15%',
+              width: isMobile ? (viewportDimensions.width < 700 ? '180%' : '220%') : '130%',
+              height: isMobile ? (viewportDimensions.width < 700 ? '180%' : '220%') : '130%',
               zIndex: -1,
               overflow: 'hidden',
               pointerEvents: 'none',
@@ -209,21 +284,34 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
               willChange: 'transform',
             }}>
               <div className="w-full h-full" style={{ 
-                transform: isMobile 
-                  ? 'scale(0.9) translate3d(0,0,0)' 
-                  : 'scale(1.3) translate3d(0,0,0)',
+                transform: (() => {
+                  if (isMobile) {
+                    // Reduced scaling for smaller 3D background
+                    if (viewportDimensions.width < 700) {
+                      // Conservative scaling for very small screens
+                      const scaleFactor = viewportDimensions.width <= 430 ? 1.8 : 1.6;
+                      return `scale(${scaleFactor}) translate3d(0,0,0)`;
+                    } else {
+                      // Reduced scaling for normal mobile screens
+                      const scaleFactor = viewportDimensions.width <= 430 ? 2.2 : 
+                                         viewportDimensions.width <= 600 ? 2.0 : 1.8;
+                      return `scale(${scaleFactor}) translate3d(0,0,0)`;
+                    }
+                  }
+                  return 'scale(1.8) translate3d(0,0,0)';
+                })(),
                 position: 'relative',
-                bottom: isMobile ? '20px' : '50px',
+                bottom: '0px',
                 willChange: 'transform',
-                // Adjust opacity for light mode visibility
-                opacity: darkMode ? 1 : (isMobile ? 0.3 : 0.5),
-                mixBlendMode: darkMode ? 'normal' : 'multiply',
+                opacity: 1.0,
+                mixBlendMode: 'normal',
+                transformOrigin: 'center center',
               }}>
                 <ErrorBoundary fallback={
                   <div className={`w-full h-full ${
                     darkMode 
-                      ? 'bg-gradient-to-br from-blue-900/30 via-purple-900/30 to-indigo-900/30'
-                      : 'bg-gradient-to-br from-blue-200/20 via-purple-200/20 to-indigo-200/20'
+                      ? 'bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20'
+                      : 'bg-transparent'
                   }`}></div>
                 }>
                   <Spline 
@@ -232,24 +320,32 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
                       console.log('Spline scene loaded successfully', {
                         isMobile,
                         viewport: viewportDimensions,
-                        userAgent: navigator.userAgent.substring(0, 50)
+                        devicePixelRatio: window.devicePixelRatio,
+                        performance: navigator.hardwareConcurrency || 'unknown'
                       });
                     }}
                     onError={(error) => {
-                      console.log('Spline scene error:', error, {
+                      console.log('Spline scene error (graceful fallback):', error, {
                         isMobile,
                         viewport: viewportDimensions
                       });
-                      // Fallback to gradient background on error
                     }}
                     style={{
                       transform: 'translate3d(0,0,0)',
                       willChange: 'transform',
                       width: '100%',
                       height: '100%',
-                      // Apply blend mode for light mode compatibility
-                      mixBlendMode: darkMode ? 'normal' : 'multiply',
+                      mixBlendMode: 'normal',
+                      // Remove all filters for consistent appearance
+                      filter: 'none',
+                      // Hide watermarks
+                      border: 'none',
+                      outline: 'none',
+                      boxShadow: 'none',
+                      overflow: 'hidden'
                     }}
+                    // Enhanced mobile-specific performance and watermark hiding
+                    renderOnDemand={isMobile}
                   />
                 </ErrorBoundary>
               </div>
@@ -258,27 +354,31 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
         )}
       </div>
 
-      <div className="container mx-auto px-4 relative z-10 pt-4 md:pt-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center min-h-[80vh]">
+      <div className={`${isMobile ? 'w-full' : 'container'} mx-auto ${isMobile ? 'px-0' : 'px-4'} relative z-10 ${isMobile ? 'pt-32' : 'pt-24'}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center min-h-[70vh]">
           {/* Left column - Text content with reduced mobile spacing */}
-          <div className={`transition-all duration-1000 transform mt-8 md:mt-0 ${
+          <div className={`transition-all duration-1000 transform ${isMobile ? 'mt-8' : 'mt-8 md:mt-0'} ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           }`}>
-            {/* Animated title with better light mode colors */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 mt-4 md:mt-8">
+            {/* Animated title with better light mode colors - Fixed dark mode background issue */}
+            <h1 className={`${isMobile ? 'text-5xl' : 'text-4xl'} md:text-6xl lg:text-7xl font-bold mb-4 ${isMobile ? 'mt-6' : 'mt-2 md:mt-4'}`}>
               <span 
                 className="neon-text"
                 style={{ 
-                  // Better contrasting colors for light mode
-                  color: darkMode ? '#ffffff' : '#0F172A', // Very dark for light mode
+                  // Much lighter colors for both modes
+                  color: darkMode ? '#B8B8C8' : '#6B7280', // Light gray for both modes
                   textShadow: darkMode 
-                    ? '0 0 20px rgba(156, 140, 255, 0.5), 0 0 40px rgba(0, 194, 255, 0.3)' 
-                    : '0 2px 8px rgba(0, 0, 0, 0.2)', // Stronger shadow for light mode
+                    ? '0 0 20px rgba(184, 184, 200, 0.4), 0 0 40px rgba(184, 184, 200, 0.2)' 
+                    : '0 2px 8px rgba(107, 114, 128, 0.2)', // Very soft shadow
                   userSelect: 'none',
                   fontWeight: 'bold',
                   transition: 'all 0.3s ease',
                   display: 'block',
                   lineHeight: '1.1',
+                  // Ensure NO background in any mode
+                  background: 'transparent',
+                  backgroundColor: 'transparent',
+                  backgroundImage: 'none',
                 }}
               >
                 {t.hero.title}
@@ -287,73 +387,70 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
 
             {/* Animated subtitle with better light mode contrast */}
             <p 
-              className={`text-xl md:text-2xl mb-12 transition-all duration-1000 delay-200 transform ${
+              className={`text-xl md:text-2xl mb-6 md:mb-8 transition-all duration-1000 delay-200 transform ${
                 isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
               }`}
               style={{ 
-                color: darkMode ? themeColors.textSecondary : '#374151', // Darker gray for light mode
-                textShadow: darkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.15)' // Better shadow
+                color: darkMode ? themeColors.textSecondary : '#6B7280', // Even lighter gray for light mode
+                textShadow: darkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)' // Softer shadow
               }}
             >
               {t.hero.subtitle}
             </p>
 
-            {/* Animated CTA button */}
+            {/* Animated CTA button - Single beautiful button */}
             <div 
-              className={`flex flex-col sm:flex-row gap-6 mb-12 transition-all duration-1000 delay-400 transform ${
+              className={`flex justify-center sm:justify-start mb-6 md:mb-8 transition-all duration-1000 delay-400 transform ${
                 isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
               }`}
             >
               <Button 
                 onClick={() => setIsContactModalOpen(true)} 
                 size="lg" 
-                className="btn-primary glow-hover"
+                className="btn-primary glow-hover relative overflow-hidden group"
                 style={{ 
-                  // Better button colors for both modes
-                  background: darkMode ? '#9C8CFF' : '#3B82F6', // Purple for dark, blue for light
-                  borderRadius: '50px',
-                  padding: '12px 30px',
-                  fontWeight: 600,
+                  background: darkMode 
+                    ? 'linear-gradient(135deg, #9C8CFF 0%, #00C2FF 100%)' 
+                    : 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+                  borderRadius: '60px',
+                  padding: '16px 40px',
+                  fontWeight: 700,
+                  fontSize: '18px',
                   position: 'relative',
                   overflow: 'hidden',
                   zIndex: 1,
-                  transition: 'all 0.3s ease',
+                  transition: 'all 0.4s ease',
                   color: '#ffffff',
                   boxShadow: darkMode 
-                    ? '0 0 15px rgba(156, 140, 255, 0.5)' 
-                    : '0 4px 12px rgba(59, 130, 246, 0.3)',
+                    ? '0 8px 32px rgba(156, 140, 255, 0.4), 0 4px 16px rgba(0, 194, 255, 0.3)' 
+                    : '0 8px 32px rgba(59, 130, 246, 0.4), 0 4px 16px rgba(29, 78, 216, 0.3)',
                   border: 'none',
+                  transform: 'translateY(0px)',
                 }}
               >
-                <i className="mr-2">📱</i>
-                {t.hero.cta}
-              </Button>
-              
-              <Button 
-                variant="outline"
-                size="lg" 
-                className="btn-secondary"
-                style={{ 
-                  background: 'transparent',
-                  // Better border and text colors for both modes
-                  border: darkMode 
-                    ? `2px solid ${themeColors.primaryNeon}` 
-                    : `2px solid #3B82F6`,
-                  borderRadius: '50px',
-                  padding: '10px 28px',
-                  fontWeight: 600,
-                  transition: 'all 0.3s ease',
-                  // Better text color for both modes
-                  color: darkMode ? '#ffffff' : '#3B82F6',
-                }}
-              >
-                <i className="mr-2">ℹ️</i>
-                {t.hero.learnMore || "Mehr erfahren"}
+                <span className="relative z-10 flex items-center">
+                  <svg 
+                    className="w-6 h-6 mr-3" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
+                    />
+                  </svg>
+                  {t.hero.cta}
+                </span>
+                {/* Animated background effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Button>
             </div>
 
-            {/* Animated stats cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+            {/* Animated stats cards - More compact */}
+            <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${isMobile ? 'mt-8' : 'mt-4'}`}>
               {[
                 { value: t.hero.customers, label: t.hero.customersLabel, icon: "👥", color: themeColors.primaryNeon },
                 { value: t.hero.repairs, label: t.hero.repairsLabel, icon: "🔧", color: themeColors.secondaryNeon },
@@ -369,182 +466,24 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
                     backdropFilter: 'blur(10px)',
                     WebkitBackdropFilter: 'blur(10px)',
                     border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
-                    borderRadius: '20px',
-                    padding: '20px',
+                    borderRadius: '16px',
+                    padding: '12px 16px',
                     transition: 'all 0.3s ease',
                   }}
                 >
                   <div className="text-center">
-                    <div className="text-3xl mb-2" style={{ color: stat.color }}>
+                    <div className="text-2xl mb-1" style={{ color: stat.color }}>
                       {stat.icon}
                     </div>
-                    <div className="text-2xl font-bold mb-1" style={{ color: stat.color }}>
+                    <div className="text-lg md:text-xl font-bold mb-1" style={{ color: stat.color }}>
                       {stat.value}
                     </div>
-                    <p style={{ color: themeColors.textSecondary, fontSize: '0.9rem' }}>
+                    <p style={{ color: themeColors.textSecondary, fontSize: '0.8rem' }}>
                       {stat.label}
                     </p>
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-          
-          {/* Right column - 3D Phone */}
-          <div 
-            ref={phoneRef}
-            className={`hidden md:flex justify-center items-center transition-all duration-1000 delay-300 transform ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
-            }`}
-            style={{
-              perspective: '1000px',
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            <div 
-              className="relative"
-              style={{
-                transform: `rotateX(${phoneRotation.x}deg) rotateY(${phoneRotation.y}deg)`,
-                transition: 'transform 0.1s ease-out',
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              {/* Phone body */}
-              <div 
-                className="phone-body"
-                style={{
-                  width: '280px',
-                  height: '560px',
-                  borderRadius: '40px',
-                  background: darkMode ? '#222' : '#111',
-                  border: '10px solid #333',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: `0 20px 50px rgba(0,0,0,0.5), 
-                              0 0 30px ${themeColors.primaryNeon}40 inset,
-                              0 0 20px ${themeColors.secondaryNeon}30`,
-                  transformStyle: 'preserve-3d',
-                }}
-              >
-                {/* Phone screen */}
-                <div 
-                  className="phone-screen"
-                  style={{
-                    position: 'absolute',
-                    top: '0',
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    background: `linear-gradient(45deg, ${themeColors.bgPrimary}, ${themeColors.bgSecondary})`,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    padding: '20px',
-                    color: themeColors.textPrimary,
-                    textAlign: 'center',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {/* Logo on screen */}
-                  <div 
-                    className="logo-container"
-                    style={{
-                      marginBottom: '20px',
-                      animation: 'pulse 2s infinite',
-                    }}
-                  >
-                    <div 
-                      className="logo"
-                      style={{
-                        fontSize: '40px',
-                        fontWeight: 'bold',
-                        background: `linear-gradient(135deg, ${themeColors.primaryNeon}, ${themeColors.secondaryNeon})`,
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      }}
-                    >
-                      HandyPro
-                    </div>
-                  </div>
-                  
-                  {/* Text on screen */}
-                  <p style={{ fontSize: '14px', marginBottom: '30px', color: themeColors.textSecondary }}>
-                    Professionelle Reparaturen
-                  </p>
-                  
-                  {/* Animated elements on screen */}
-                  <div 
-                    className="screen-elements"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '15px',
-                      width: '80%',
-                    }}
-                  >
-                    {[1, 2, 3].map((_, i) => (
-                      <div 
-                        key={i}
-                        style={{
-                          height: '10px',
-                          width: '100%',
-                          background: `linear-gradient(90deg, ${themeColors.primaryNeon}${20 + i * 20}, ${themeColors.secondaryNeon}${20 + i * 20})`,
-                          borderRadius: '5px',
-                          animation: `pulse 1.5s infinite ${i * 0.3}s`,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Phone reflection */}
-                <div 
-                  className="phone-reflection"
-                  style={{
-                    position: 'absolute',
-                    top: '0',
-                    left: '0',
-                    width: '100%',
-                    height: '100%',
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%)',
-                    pointerEvents: 'none',
-                  }}
-                />
-                
-                {/* Phone notch */}
-                <div 
-                  className="phone-notch"
-                  style={{
-                    position: 'absolute',
-                    top: '0',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '120px',
-                    height: '25px',
-                    background: '#000',
-                    borderBottomLeftRadius: '10px',
-                    borderBottomRightRadius: '10px',
-                    zIndex: 10,
-                  }}
-                />
-              </div>
-              
-              {/* Phone shadow */}
-              <div 
-                className="phone-shadow"
-                style={{
-                  position: 'absolute',
-                  bottom: '-40px',
-                  left: '10%',
-                  width: '80%',
-                  height: '20px',
-                  background: 'rgba(0,0,0,0.2)',
-                  filter: 'blur(15px)',
-                  borderRadius: '50%',
-                  zIndex: -1,
-                }}
-              />
             </div>
           </div>
         </div>
@@ -621,4 +560,6 @@ export default function HeroSection({ darkMode, setIsContactModalOpen, translati
       `}</style>
     </section>
   );
-}
+});
+
+export default HeroSection;

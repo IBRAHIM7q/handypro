@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -19,7 +19,7 @@ interface HeaderProps {
   translations: any;
 }
 
-export default function Header({
+const Header = memo(function Header({
   language,
   setLanguage,
   darkMode,
@@ -33,14 +33,15 @@ export default function Header({
   const [scrolled, setScrolled] = useState(false);
   const t = translations[language];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+  // Optimized scroll handling with useCallback
+  const handleScroll = useCallback(() => {
+    setScrolled(window.scrollY > 20);
+  }, []);
 
+  useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [handleScroll]);
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -49,29 +50,50 @@ export default function Header({
         : "py-4 rounded-full mx-4 mt-2 bg-gradient-to-r from-gray-900/70 to-black/70 backdrop-blur-lg"
     }`}>
       <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo - moved to the left */}
-        <div className="flex items-center space-x-3 ml-2">
+        {/* Logo - moved to the left with home link */}
+        <div 
+          className="flex items-center space-x-3 ml-2 cursor-pointer" 
+          onClick={() => scrollToSection("hero")}
+          role="button"
+          tabIndex={0}
+          aria-label={language === "de" ? "Zur Startseite" : "إلى الصفحة الرئيسية"}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              scrollToSection("hero");
+            }
+          }}
+        >
           <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-gray-800 flex items-center justify-center shadow-lg">
             <AnimatedLogo />
           </div>
           <div>
-            <span className="text-xl font-bold bg-gradient-to-r from-slate-500 to-gray-600 bg-clip-text text-transparent">
+            <span className={`text-xl font-bold transition-colors duration-300 ${
+              scrolled 
+                ? (darkMode ? "text-gray-400" : "text-gray-500") 
+                : "text-gray-300"
+            }`}>
               HandyPro
             </span>
-            <p className="text-xs opacity-70">Kiel</p>
+            <p className={`text-xs transition-colors duration-300 ${
+              scrolled 
+                ? (darkMode ? "text-gray-300" : "text-gray-600") 
+                : "text-gray-300"
+            }`}>Kiel</p>
           </div>
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-8">
+        <nav className="hidden lg:flex items-center space-x-8" role="navigation" aria-label={language === "de" ? "Hauptnavigation" : "التنقل الرئيسي"}>
           {["hero", "services", "accessories", "process", "contact"].map((section) => (
             <button
               key={section}
               onClick={() => scrollToSection(section)}
               className={`font-medium transition-all duration-300 relative group ${
                 activeSection === section 
-                  ? "text-slate-500" 
-                  : `${darkMode ? "text-gray-300 hover:text-white" : "text-gray-600 hover:text-gray-900"}`
+                  ? (scrolled ? "text-slate-500" : "text-blue-300") 
+                  : scrolled 
+                    ? (darkMode ? "text-gray-300 hover:text-white" : "text-gray-600 hover:text-gray-900")
+                    : "text-gray-200 hover:text-white"
               }`}
             >
               {t.nav[section === "hero" ? "home" : section]}
@@ -84,16 +106,35 @@ export default function Header({
 
         {/* Controls */}
         <div className="flex items-center space-x-4">
-          {/* Language Switcher */}
-          <Select value={language} onValueChange={(value: "de" | "ar") => setLanguage(value)}>
-            <SelectTrigger className={`w-24 h-9 ${scrolled ? "border-gray-300" : "border-transparent"}`}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="de">Deutsch</SelectItem>
-              <SelectItem value="ar">Arabisch</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Language Switcher - Desktop only with simple buttons */}
+          <div className="hidden lg:flex items-center space-x-2 bg-white/10 dark:bg-gray-800/50 rounded-full p-1">
+            <button
+              onClick={() => {
+                console.log('Setting language to DE');
+                setLanguage("de");
+              }}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
+                language === "de" 
+                  ? "bg-blue-600 text-white shadow-lg" 
+                  : "text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700"
+              }`}
+            >
+              🇩🇪 DE
+            </button>
+            <button
+              onClick={() => {
+                console.log('Setting language to AR');
+                setLanguage("ar");
+              }}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
+                language === "ar" 
+                  ? "bg-blue-600 text-white shadow-lg" 
+                  : "text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700"
+              }`}
+            >
+              🇸🇦 AR
+            </button>
+          </div>
 
           {/* Dark Mode Toggle - More visible */}
           <Button 
@@ -132,7 +173,9 @@ export default function Header({
                 variant="ghost" 
                 size="icon" 
                 className={`lg:hidden h-9 w-9 rounded-full transition-all duration-300 ${
-                  scrolled ? "hover:bg-gray-200 dark:hover:bg-gray-700" : ""
+                  scrolled 
+                    ? "hover:bg-gray-200 dark:hover:bg-gray-700" 
+                    : "text-white hover:bg-white/10"
                 }`}
               >
                 <span className="text-xl">☰</span>
@@ -151,10 +194,14 @@ export default function Header({
                 </div>
               </SheetHeader>
               <div className="py-6 space-y-4">
+                {/* Navigation */}
                 {["hero", "services", "accessories", "process", "contact"].map((section) => (
                   <button
                     key={section}
-                    onClick={() => scrollToSection(section)}
+                    onClick={() => {
+                      scrollToSection(section);
+                      setIsMobileMenuOpen(false);
+                    }}
                     className={`block w-full text-left font-medium py-3 px-4 rounded-lg transition-all duration-300 ${
                       activeSection === section 
                         ? "bg-slate-500/10 text-slate-500 border-l-4 border-slate-500" 
@@ -171,4 +218,6 @@ export default function Header({
       </div>
     </header>
   );
-}
+});
+
+export default Header;

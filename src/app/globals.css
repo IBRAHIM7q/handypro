@@ -8,6 +8,17 @@
   -webkit-tap-highlight-color: transparent !important;
 }
 
+/* Hintergrund im Hellmodus verbessern */
+body {
+  background-color: #f8f9fa;
+  background-image: linear-gradient(to bottom, #ffffff, #f0f2f5);
+}
+
+body.dark {
+  background-color: #121212;
+  background-image: linear-gradient(to bottom, #1a1a1a, #0d0d0d);
+}
+
 /* Verhindert ungewollte Textauswahl */
 .neon-text, h1, h2, h3, h4, h5, h6, button, a {
   -webkit-user-select: none !important;
@@ -39,6 +50,60 @@
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent !important;
   outline: none !important;
+}
+
+/* Enhanced Chat Button Animations */
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(20px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes chatPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.chat-button {
+  animation: chatPulse 2s ease-in-out infinite;
+}
+
+.chat-button:hover {
+  animation: none;
+}
+
+/* Improved chat menu animations */
+.chat-menu-enter {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+}
+
+.chat-menu-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.3s ease-out;
+}
+
+.chat-menu-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.chat-menu-exit-active {
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  transition: all 0.2s ease-in;
 }
 
 @theme inline {
@@ -266,12 +331,7 @@ button, a, [role="button"] {
   }
 }
 
-/* Performance optimizations */
-.phone-body,
-.phone-screen,
-.logo-container {
-  will-change: transform;
-}
+
 
 /* Accessibility improvements */
 @media (prefers-reduced-motion: reduce) {
@@ -357,5 +417,148 @@ canvas, iframe[src*="spline"] {
     transform: translate3d(0,0,0) scale(0.9);
     image-rendering: optimizeSpeed;
     image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* Ultra-aggressive Spline watermark hiding */
+/* Hide "Made with Spline" and all watermarks */
+[class*="watermark"], [id*="watermark"], 
+[class*="branding"], [id*="branding"],
+[class*="logo"], [class*="powered"],
+[class*="spline-logo"], [class*="spline-watermark"],
+[data-spline*="watermark"], [data-spline*="branding"],
+[aria-label*="spline"], [aria-label*="watermark"],
+[title*="spline"], [title*="watermark"],
+[alt*="spline"], [alt*="watermark"],
+[class*="spline"], [id*="spline"],
+a[href*="spline"], a[href*="my.spline"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+  pointer-events: none !important;
+}
+
+/* Target any Spline-related elements in all corners */
+div[style*="position: absolute"][style*="bottom"][style*="right"],
+div[style*="position: fixed"][style*="bottom"][style*="right"],
+div[style*="position: absolute"][style*="top"][style*="left"],
+div[style*="position: fixed"][style*="top"][style*="left"],
+div[style*="position: absolute"][style*="top"][style*="right"],
+div[style*="position: fixed"][style*="top"][style*="right"],
+div[style*="position: absolute"][style*="bottom"][style*="left"],
+div[style*="position: fixed"][style*="bottom"][style*="left"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Hide iframe contents that might contain watermarks */
+iframe[src*="spline"] {
+  mask: none !important;
+  -webkit-mask: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Additional spline-specific hiding */
+[data-testid*="spline"],
+[data-cy*="spline"],
+[data-qa*="spline"],
+[class*="spline"] * {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Use CSS content blocking to hide text */
+*:before, *:after {
+  content: none !important;
+}
+
+/* Block common watermark text patterns */
+span:contains("Made with"),
+span:contains("Spline"),
+span:contains("spline"),
+div:contains("Made with"),
+div:contains("Spline"),
+a:contains("Made with"),
+a:contains("Spline") {
+  display: none !important;
+  visibility: hidden !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
+}
+
+/* Completely hide any element with spline in class or id */
+[class*="spline" i],
+[id*="spline" i],
+[data-*="spline" i] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -10000px !important;
+  top: -10000px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  z-index: -99999 !important;
+}
+
+/* Remove any overlay divs that might be watermarks */
+body > div[style*="position"],
+html > div[style*="position"] {
+  display: none !important;
+}
+
+/* Remove any lines or borders at the top */
+body::before, html::before, #__next::before,
+[id*="hero"]::before, section::before {
+  display: none !important;
+  border: none !important;
+  border-top: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any top borders or lines */
+* {
+  border-top: none !important;
+}
+
+body, html, #__next {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Remove any top lines specifically */
+#hero, section[id="hero"] {
+  border-top: none !important;
+  border: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Remove all potential border/line elements */
+*::before, *::after {
+  border-top: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure no viewport borders */
+@media screen {
+  * {
+    box-sizing: border-box;
+    border-top-width: 0 !important;
   }
 }

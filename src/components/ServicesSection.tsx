@@ -15,25 +15,42 @@ export default function ServicesSection({ darkMode, translations, language }: Se
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
+  // Enhanced useEffect with error handling for intersection observer
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
+    try {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          try {
+            if (entry.isIntersecting) {
+              setIsVisible(true);
+            }
+          } catch (error) {
+            console.error('Error in intersection observer callback:', error);
+            // Fallback: show content immediately
+            setIsVisible(true);
+          }
+        },
+        { threshold: 0.1 }
+      );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
-
-    return () => {
       if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+        observer.observe(sectionRef.current);
       }
-    };
+
+      return () => {
+        try {
+          if (sectionRef.current) {
+            observer.unobserve(sectionRef.current);
+          }
+        } catch (error) {
+          console.error('Error cleaning up intersection observer:', error);
+        }
+      };
+    } catch (error) {
+      console.error('Error setting up intersection observer:', error);
+      // Fallback: show content immediately if observer fails
+      setIsVisible(true);
+    }
   }, []);
 
   const services = [
@@ -70,7 +87,7 @@ export default function ServicesSection({ darkMode, translations, language }: Se
   return (
     <section 
       ref={sectionRef}
-      className={`py-12 md:py-20 ${darkMode ? "bg-gray-900/30" : "bg-gray-50/50"} relative overflow-hidden`}
+      className={`py-8 md:py-12 ${darkMode ? "bg-gray-900/30" : "bg-gray-50/50"} relative overflow-hidden`}
       style={{ 
         background: darkMode ? 
           'radial-gradient(circle at 10% 20%, rgba(21, 21, 30, 0.98) 0%, rgba(5, 5, 15, 0.98) 90.5%)' : 
@@ -85,15 +102,15 @@ export default function ServicesSection({ darkMode, translations, language }: Se
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section title with animation */}
-        <div className={`text-center mb-12 md:mb-20 transition-all duration-1000 transform ${
+        <div className={`text-center mb-8 md:mb-12 transition-all duration-1000 transform ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}>
-          <div className="inline-block mb-3 px-4 py-1 rounded-full bg-opacity-10 backdrop-blur-sm border border-opacity-20"
+          <div className="inline-block mb-3 px-4 py-1 rounded-full backdrop-blur-sm border border-opacity-20"
             style={{ 
-              backgroundColor: darkMode ? 'rgba(100, 100, 255, 0.1)' : 'rgba(100, 100, 255, 0.05)',
-              borderColor: darkMode ? 'rgba(100, 100, 255, 0.2)' : 'rgba(100, 100, 255, 0.1)'
+              backgroundColor: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(100, 100, 255, 0.05)',
+              borderColor: darkMode ? 'rgba(75, 85, 99, 0.5)' : 'rgba(100, 100, 255, 0.1)'
             }}>
-            <span className={`text-sm font-medium ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-blue-600'}`}>
               {t.services.subtitle || "Unsere Dienstleistungen"}
             </span>
           </div>

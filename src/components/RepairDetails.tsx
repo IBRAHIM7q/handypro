@@ -106,10 +106,10 @@ export default function RepairDetails({ darkMode, translations, language }: Repa
   ];
 
   return (
-    <section ref={sectionRef} className="py-12 md:py-20">
+    <section ref={sectionRef} className="py-8 md:py-12">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center mb-8 md:mb-16 transition-all duration-1000 transform ${
+        <div className={`text-center mb-6 md:mb-10 transition-all duration-1000 transform ${
           isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
         }`}>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
